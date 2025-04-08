@@ -1,9 +1,9 @@
-# main.py
 import click
-from langchain_deepseek import ChatDeepSeek
 import json
 from pathlib import Path
 from typing import Dict, Any
+from load_model import load_model
+CONFIG_PATH = Path.home() / ".mycli" / "config.json"
 
 @click.group()
 def cli():
@@ -12,23 +12,13 @@ def cli():
 
 @cli.command()
 @click.argument('prompt')
-def generate(prompt: str):
+def ask(prompt: str):
     """根据提示生成文本"""
-
-    llm = ChatDeepSeek(
-    model="deepseek-chat",
-    temperature=0,
-    max_tokens=None,
-    timeout=None,
-    max_retries=2,
-    api_key="sk-9ff864592fc641f39fecdab38b1c3474",
-    )
+    llm = load_model()
 
     response = llm.invoke(prompt)
     
     click.echo(response.content)
-
-CONFIG_PATH = Path.home() / ".mycli" / "config.json"
 
 @cli.command()
 @click.option("--model-type", prompt="Please choose the model-type", type=click.Choice(["openai", "deepseek-chat"]), default="deepseek-chat")
