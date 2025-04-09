@@ -16,7 +16,6 @@ def load_model(config_name: str = "default"):
     model_type = model_config["type"]
     api_key = model_config["api-key"]
 
-
     if model_type == "deepseek-chat":
             llm = ChatDeepSeek(
                 model=model_type,

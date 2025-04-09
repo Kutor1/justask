@@ -3,6 +3,12 @@ import json
 from pathlib import Path
 from typing import Dict, Any
 from load_model import load_model
+from langchain_core.runnables import (
+    RunnableLambda,
+    ConfigurableFieldSpec,
+    RunnablePassthrough,
+)
+from langchain_core.runnables.history import RunnableWithMessageHistory
 CONFIG_PATH = Path.home() / ".mycli" / "config.json"
 
 @click.group()
@@ -21,8 +27,8 @@ def ask(prompt: str):
     click.echo(response.content)
 
 @cli.command()
-@click.option("--model-type", prompt="Please choose the model-type", type=click.Choice(["openai", "deepseek-chat"]), default="deepseek-chat")
-@click.option("--model-name", prompt="模型名称（如 gpt-4）", default="gpt-3.5-turbo")
+@click.option("--model-type", prompt="Please choose the model-type", type=click.Choice(["openai", "deepseek"]), default="deepseek")
+@click.option("--model-name", prompt="Please enter the model-name (deepseek-chat)", default="deepseek-chat")
 @click.option("--api-key", prompt="Please enter your key")
 @click.option("--env-file", prompt="环境变量文件路径（存储API密钥）", default=".env")
 def init(model_type: str, model_name: str, api_key: str, env_file: str):
@@ -38,10 +44,6 @@ def init(model_type: str, model_name: str, api_key: str, env_file: str):
             }
         }
     }
-
-    # 如果是本地模型（如 Llama），需额外参数
-    if model_type == "llama":
-        config["models"]["default"]["model_path"] = click.prompt("本地模型路径")
 
     # 保存配置文件
     CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
