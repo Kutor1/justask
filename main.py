@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from typing import Dict, Any
 from load_model import load_model
+from history_manager import History_Manager
 from langchain_core.runnables import (
     RunnableLambda,
     ConfigurableFieldSpec,
@@ -17,14 +18,17 @@ def cli():
     pass
 
 @cli.command()
+@click.option("--session_id", prompt="Please choose/create a history id")
 @click.argument('prompt')
-def ask(prompt: str):
+def ask(session_id: str ,prompt: str):
     """根据提示生成文本"""
-    llm = load_model()
-
-    response = llm.invoke(prompt)
     
-    click.echo(response.content)
+    ask_with_history = History_Manager()
+    
+    response = ask_with_history.ask_with_history(session_id=session_id, question=prompt)
+    
+    # print(response)
+    click.echo(response)
 
 @cli.command()
 @click.option("--model-type", prompt="Please choose the model-type", type=click.Choice(["openai", "deepseek"]), default="deepseek")
