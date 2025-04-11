@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Dict, Any
 from load_model import load_model
 from history_manager import History_Manager
+from ask_model import Ask_Model
 from langchain_core.runnables import (
     RunnableLambda,
     ConfigurableFieldSpec,
@@ -18,17 +19,36 @@ def cli():
     pass
 
 @cli.command()
+@click.argument('prompt')
+def oask(prompt: str):
+    """once ask, simple ask"""
+    once_ask = Ask_Model()
+    response = once_ask.once_ask(prompt=prompt)
+
+    click.echo(response)
+
+@cli.command()
 @click.option("--session_id", prompt="Please choose/create a history id")
 @click.argument('prompt')
 def ask(session_id: str ,prompt: str):
-    """根据提示生成文本"""
+    """ask with history"""
     
-    ask_with_history = History_Manager()
+    # ask_with_history = Ask_Model()
+    # response = ask_with_history.ask_with_history(session_id=session_id, prompt=prompt)
     
-    response = ask_with_history.ask_with_history(session_id=session_id, question=prompt)
-    
-    # print(response)
-    click.echo(response)
+    # click.echo(response)
+    ask_with_history = Ask_Model()
+    click.echo(f"Session ID: {session_id}")
+    click.echo("Type 'exit' or 'quit' to end the conversation.")
+
+    while True:
+        prompt = click.prompt("\nYou", prompt_suffix=": ")
+        if prompt.lower() in ["exit", "quit"]:
+            click.echo(f"Conversation ended. Your session ID is: {session_id}")
+            break
+        
+        response = ask_with_history.ask_with_history(session_id=session_id, prompt=prompt)
+        click.echo(f"\nAI: {response}")
 
 @cli.command()
 @click.option("--model-type", prompt="Please choose the model-type", type=click.Choice(["openai", "deepseek"]), default="deepseek")
@@ -57,5 +77,6 @@ def init(model_type: str, model_name: str, api_key: str, env_file: str):
     click.echo(f"配置已保存至 {CONFIG_PATH}")
 
 if __name__ == "__main__":
+
     cli()
 
