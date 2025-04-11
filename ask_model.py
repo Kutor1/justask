@@ -7,7 +7,7 @@ from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.documents import Document
 from langchain_core.messages import BaseMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field 
 from langchain_core.runnables import (
     RunnableLambda,
     ConfigurableFieldSpec,
@@ -41,7 +41,6 @@ class Ask_Model():
 
         # load model
         llm = load_model()
-        
         chain_with_history = self.history_manager.ask_with_history(session_id=session_id, question=prompt, model=llm)
         
         chain_with_history.invoke(
@@ -49,16 +48,24 @@ class Ask_Model():
             config={"configurable": {"session_id": session_id}}
         )
 
-        return self.history_manager.store
+        # extract the message use sessionid in store
+        ai_message = self.extract_ai_message(self.history_manager.store[session_id])
+        latest_message = ai_message[-1]
+
+        return latest_message
     
     def extract_ai_message(self, response):
 
-        # ai_messages = [
-            # response.content
-            # for msg in response.messages  # 直接遍历消息列表
-            # if isinstance(msg, AIMessage)    # 类型过滤
-        # ]
+        if hasattr(response, 'content'):
+            ai_messages = response.content           
 
-        ai_message = response.content
+        else:
+            # extract specific message  
+            ai_messages = [
+                msg.content
+                for msg in response.messages  # iterable message
+                if isinstance(msg, AIMessage)    # extract AIMessage
+            ]
 
-        return ai_message
+
+        return ai_messages
