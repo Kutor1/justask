@@ -2,6 +2,7 @@ from operator import itemgetter
 from typing import List
 from load_model import load_model
 from history_manager import History_Manager
+import re
 
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.documents import Document
@@ -43,16 +44,13 @@ class Ask_Model():
         llm = load_model()
         chain_with_history = self.history_manager.ask_with_history(session_id=session_id, question=prompt, model=llm)
         
-        chain_with_history.invoke(
+        response = chain_with_history.invoke(
             {"ability": "math", "question": prompt},
             config={"configurable": {"session_id": session_id}}
         )
 
-        # extract the message use sessionid in store
-        ai_message = self.extract_ai_message(self.history_manager.store[session_id])
-        latest_message = ai_message[-1]
-
-        return latest_message
+        ai_message = response.content
+        return ai_message
     
     def extract_ai_message(self, response):
 
@@ -69,3 +67,24 @@ class Ask_Model():
 
 
         return ai_messages
+
+    def clean_markdown(text):
+        text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)
+        text = re.sub(r'\*(.*?)\*', r'\1', text)
+
+        text = re.sub(r'^(#+)\s*(.*?)\s*$', r'\2', text, flags=re.MULTILINE)
+
+        text = re.sub(r'^(-|\d+\.)\s*(.*?)$', r'\2', text, flags=re.MULTILINE)
+
+        text = re.sub(r'^>\s*(.*?)$', r'\1', text, flags=re.MULTILINE)
+
+        text = re.sub(r'[\U0001F600-\U0001F64F]', '', text)
+
+        text = re.sub(r'`{3}(.*?)`{3}', r'\1', text, flags=re.DOTALL)
+        text = re.sub(r'`(.*?)`', r'\1', text)
+
+        text = re.sub(r'\[(.*?)\]\(.*?\)', r'\1', text)
+
+        text = re.sub(r'\s+', ' ', text).strip()
+
+        return text
