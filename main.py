@@ -5,6 +5,9 @@ from typing import Dict, Any
 from load_model import load_model
 from history_manager import History_Manager
 from ask_model import Ask_Model
+from database_history import DataBaseHistory
+from format_output import format_and_print_history
+
 from langchain_core.runnables import (
     RunnableLambda,
     ConfigurableFieldSpec,
@@ -29,8 +32,7 @@ def oask(prompt: str):
 
 @cli.command()
 @click.option("--session_id", prompt="Please choose/create a history id")
-@click.argument('prompt')
-def ask(session_id: str ,prompt: str):
+def ask(session_id: str):
     """ask with history"""
     
     # ask_with_history = Ask_Model()
@@ -51,12 +53,35 @@ def ask(session_id: str ,prompt: str):
         click.echo(f"\nAI: {response}")
 
 @cli.command()
+@click.option("-d", "--session_id", type=str, help="Please enter the session_id which you want to delete", required=False)
+@click.option("-s", "--is_showed", type=str, help="show histories", required=False, is_flag=True)
+def history(session_id: str, is_showed: str):
+    """operate history in database"""
+    history_manager = History_Manager()
+
+    if session_id is not None:
+        # delete history in dbase with session_id
+        try:
+            history_manager.delete(session_id=session_id)
+
+        finally:
+            click.echo("delete completed!")
+
+    if is_showed is not None:
+        
+        all_session = history_manager.get_all_session()
+        
+        format_and_print_history(all_session)
+        # click.echo(output)
+    # click.echo
+
+@cli.command()
 @click.option("--model-type", prompt="Please choose the model-type", type=click.Choice(["openai", "deepseek"]), default="deepseek")
 @click.option("--model-name", prompt="Please enter the model-name (deepseek-chat)", default="deepseek-chat")
 @click.option("--api-key", prompt="Please enter your key")
 @click.option("--env-file", prompt="环境变量文件路径（存储API密钥）", default=".env")
 def init(model_type: str, model_name: str, api_key: str, env_file: str):
-    """初始化模型配置"""
+    """init the model setting"""
     config: Dict[str, Any] = {
         "default_model": "default",
         "models": {
@@ -69,12 +94,12 @@ def init(model_type: str, model_name: str, api_key: str, env_file: str):
         }
     }
 
-    # 保存配置文件
+    # store the config
     CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(CONFIG_PATH, "w") as f:
         json.dump(config, f, indent=2)
 
-    click.echo(f"配置已保存至 {CONFIG_PATH}")
+    click.echo(f"setting has stored in {CONFIG_PATH}")
 
 if __name__ == "__main__":
 
