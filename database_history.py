@@ -8,7 +8,9 @@ from langchain.schema.messages import BaseMessage
 class DataBaseHistory(BaseChatMessageHistory):
     """store history in database"""
     
-    def __init__(self, session_id: str, db_path: str = "chat_histories.db"):
+    # db_path = "chat_histories.db"
+
+    def __init__(self, session_id:str, db_path: str = "chat_histories.db"):
         self.session_id = session_id
         self.db_path = db_path
         self._setup_database()
@@ -25,10 +27,47 @@ class DataBaseHistory(BaseChatMessageHistory):
                 )
             ''')
             conn.execute('''
+                CREATE TABLE IF NOT EXISTS session_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    session_id TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(session_id)
+                )
+            ''')
+            conn.execute('''
                 CREATE INDEX IF NOT EXISTS idx_session 
                 ON message_history (session_id)
             ''')
             conn.commit()
+
+    def add_session(self):
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute('''
+                INSERT OR IGNORE INTO session_history (session_id)
+                VALUES (?)
+            ''', self.session_id)
+
+    def delete_session(self):
+        '''delete session_id in dbase'''
+        
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute('''
+                DELETE FROM session_history WHERE session_id = ?
+            ''', self.session_id)
+
+    @staticmethod
+    def get_session():
+
+        db_path = "chat_histories.db"
+
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.execute(
+                "SELECT session_id, created_at FROM session_history"
+            )
+        
+        return cursor.fetchall()
+
 
     def add_message(self, message: BaseMessage) -> None:
         """build standard message before storing the message"""
@@ -72,4 +111,10 @@ class DataBaseHistory(BaseChatMessageHistory):
             items = [json.loads(row[0]) for row in cursor.fetchall()]
             
         return messages_from_dict(items)
-    
+
+if __name__ == "__main__":
+
+    DataBaseHistory(session_id="1").delete_session()
+    # print(DataBaseHistory.get_session())
+    # db = DataBaseHistory(session_id="2")
+    # db.add_session()
