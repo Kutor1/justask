@@ -4,6 +4,7 @@ from load_model import load_model
 # from database_history import DatabaseHistory
 from inmemoryhistory import InMemoryHistory
 from database_history import DataBaseHistory
+from format_output import format_and_print_history
 
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.documents import Document
@@ -30,17 +31,31 @@ class History_Manager:
         # init store
         # self.history_db = DataBaseHistory()
 
-    def delete(self, session_id):
-        """delete all messages in session_id"""
+    def delete(self, session_id: str):
+        """delete session_id and all messages with session_id"""
         
         dbase = DataBaseHistory(session_id=session_id)
         dbase.clear()
+        dbase.delete_session()
 
+    def add_session_id(self, session_id: str):
 
-    def get_all_session():
+        dbase = DataBaseHistory(session_id=session_id)
+        dbase.add_session()
 
-        dbase = DataBaseHistory()
+    def get_all_session(self):
+        all_session = DataBaseHistory.get_session()
 
+        return all_session
+    
+    def show_session(self):
+        """show all session_id"""
+
+        # self.get_all_session()
+        format_and_print_history(self.get_all_session())
+        
+        return
+    
     def ask_with_history(self, session_id: str, question: str, model):
 
         # make prompt
@@ -62,3 +77,9 @@ class History_Manager:
         
         # return the chain with history
         return chain_with_history
+    
+if __name__=="__main__":
+
+    hm = History_Manager()
+    # db = DataBaseHistory
+    # print(DataBaseHistory.get_session())
