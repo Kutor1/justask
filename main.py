@@ -31,16 +31,16 @@ def oask(prompt: str):
     click.echo(response)
 
 @cli.command()
-@click.option("--session_id", prompt="Please choose/create a history id")
-def ask(session_id: str):
+def ask():
     """ask with history"""
-    
-    # ask_with_history = Ask_Model()
-    # response = ask_with_history.ask_with_history(session_id=session_id, prompt=prompt)
-    
-    # click.echo(response)
+
+    # before ask, show history
+    history_manager = History_Manager()
+    history_manager.show_session()
+
+    session_id = click.prompt("Please choose or create a new Session ID", prompt_suffix=": ")
     ask_with_history = Ask_Model()
-    click.echo(f"Session ID: {session_id}")
+
     click.echo("Type 'exit' or 'quit' to end the conversation.")
 
     while True:
@@ -64,16 +64,15 @@ def history(session_id: str, is_showed: str):
         try:
             history_manager.delete(session_id=session_id)
 
-        finally:
-            click.echo("delete completed!")
+        except:
+            click.echo("failed")
+        # finally:
+            # click.echo("delete completed!")
 
     if is_showed is not None:
         
-        all_session = history_manager.get_all_session()
+        history_manager.show_session()
         
-        format_and_print_history(all_session)
-        # click.echo(output)
-    # click.echo
 
 @cli.command()
 @click.option("--model-type", prompt="Please choose the model-type", type=click.Choice(["openai", "deepseek"]), default="deepseek")
