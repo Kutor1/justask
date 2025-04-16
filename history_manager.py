@@ -1,7 +1,7 @@
 from operator import itemgetter
 from typing import List
 from load_model import load_model
-# from database_history import DatabaseHistory
+
 from inmemoryhistory import InMemoryHistory
 from database_history import DataBaseHistory
 from format_output import format_and_print_history
@@ -34,9 +34,21 @@ class History_Manager:
     def delete(self, session_id: str):
         """delete session_id and all messages with session_id"""
         
-        dbase = DataBaseHistory(session_id=session_id)
-        dbase.clear()
-        dbase.delete_session()
+        session_history = self.get_all_session()
+
+        # for id in session_history:
+        if any(session_id in session for session in session_history):
+            
+            dbase = DataBaseHistory(session_id=session_id)
+            dbase.clear()
+            dbase.delete_session()
+
+            print("delete completed")
+
+        else:
+
+            # raise ValueError("session_id is not exist")
+            print("session_id is not exist")
 
     def add_session_id(self, session_id: str):
 
@@ -81,5 +93,7 @@ class History_Manager:
 if __name__=="__main__":
 
     hm = History_Manager()
+    hm.add_session_id("1")
+    hm.delete("2")
     # db = DataBaseHistory
     # print(DataBaseHistory.get_session())
