@@ -39,6 +39,12 @@ def ask():
     history_manager.show_session()
 
     session_id = click.prompt("Please choose or create a new Session ID", prompt_suffix=": ")
+
+    # add session_id into dbase
+    history_manager.add_session_id(session_id=session_id)
+    
+    history_manager.show_history_messages(session_id=session_id)
+
     ask_with_history = Ask_Model()
 
     click.echo("Type 'exit' or 'quit' to end the conversation.")
@@ -61,13 +67,7 @@ def history(session_id: str, is_showed: str):
 
     if session_id is not None:
         # delete history in dbase with session_id
-        try:
-            history_manager.delete(session_id=session_id)
-
-        except:
-            click.echo("failed")
-        # finally:
-            # click.echo("delete completed!")
+        history_manager.delete(session_id=session_id)
 
     if is_showed is not None:
         
@@ -78,7 +78,7 @@ def history(session_id: str, is_showed: str):
 @click.option("--model-type", prompt="Please choose the model-type", type=click.Choice(["openai", "deepseek"]), default="deepseek")
 @click.option("--model-name", prompt="Please enter the model-name (deepseek-chat)", default="deepseek-chat")
 @click.option("--api-key", prompt="Please enter your key")
-@click.option("--env-file", prompt="环境变量文件路径（存储API密钥）", default=".env")
+@click.option("--env-file", prompt="envs path which store the api-key", default=".env")
 def init(model_type: str, model_name: str, api_key: str, env_file: str):
     """init the model setting"""
     config: Dict[str, Any] = {
