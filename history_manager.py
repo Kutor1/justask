@@ -36,26 +36,28 @@ class History_Manager:
         
         session_history = self.get_all_session()
 
-        # for id in session_history:
+        # match the session_id with the history in databse
         if any(session_id in session for session in session_history):
             
             dbase = DataBaseHistory(session_id=session_id)
+
+            # use DataBaseHistory def to delete the session and messages history
             dbase.clear()
             dbase.delete_session()
 
             print("delete completed")
 
         else:
-
-            # raise ValueError("session_id is not exist")
             print("session_id is not exist")
 
     def add_session_id(self, session_id: str):
-
+        '''add session_id into the database'''
+        
         dbase = DataBaseHistory(session_id=session_id)
         dbase.add_session()
 
     def get_all_session(self):
+        '''get session history from database'''
         all_session = DataBaseHistory.get_session()
 
         return all_session
@@ -63,12 +65,38 @@ class History_Manager:
     def show_session(self):
         """show all session_id"""
 
-        # self.get_all_session()
+        # use format def to print the session_id history
         format_and_print_history(self.get_all_session())
         
-        return
     
+    def get_messages(self, session_id: str):
+        '''use session_id to get the specific messages history'''
+        
+        dbase = DataBaseHistory(session_id=session_id)
+        return dbase.get_messages_by_session()
+
+    def show_history_messages(self, session_id: str):
+        '''print the messages history'''
+        
+        messages = self.get_messages(session_id=session_id)
+
+        for message in messages:
+            # confirm the message type
+            sender_type = message["type"]
+            if sender_type == "human":
+                prefix = "Human: "
+            elif sender_type == "ai":
+                prefix = "AI: "
+            else:
+                prefix = "Unknown: "  # unknown type 
+            
+            # extract the message content
+            content = message["data"]["content"]
+            
+            print(f"{prefix}{content}")
+
     def ask_with_history(self, session_id: str, question: str, model):
+        '''ask the model with messages history'''
 
         # make prompt
         prompt = ChatPromptTemplate.from_messages([
@@ -93,7 +121,8 @@ class History_Manager:
 if __name__=="__main__":
 
     hm = History_Manager()
-    hm.add_session_id("1")
-    hm.delete("2")
+    # hm.add_session_id("1")
+    hm.show_history_messages(session_id="1")
+    # hm.delete("2")
     # db = DataBaseHistory
     # print(DataBaseHistory.get_session())
