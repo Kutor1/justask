@@ -68,6 +68,46 @@ class DataBaseHistory(BaseChatMessageHistory):
         
         return cursor.fetchall()
 
+    def get_messages_by_session(self):
+        """
+        use session_id select messages from database
+        :param session_id
+        :return: messages dict
+        """
+        messages = []
+        
+        try:
+
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+
+            query = """
+                SELECT message 
+                FROM message_history 
+                WHERE session_id = ?
+            """
+            
+            cursor.execute(query, (self.session_id,))
+            results = cursor.fetchall()
+
+            # parse from JSON
+            for row in results:
+                try:
+                    message = json.loads(row[0])
+                    messages.append({
+                        "type": message["type"],
+                        "data": message["data"]
+                    })
+                except (json.JSONDecodeError, KeyError) as e:
+                    print(f"parse the message from data failed: {str(e)}")
+
+        except sqlite3.Error as e:
+            print(f"connected database failed: {str(e)}")
+        finally:
+            if conn:
+                conn.commit()
+
+        return messages
 
     def add_message(self, message: BaseMessage) -> None:
         """build standard message before storing the message"""
@@ -114,7 +154,7 @@ class DataBaseHistory(BaseChatMessageHistory):
 
 if __name__ == "__main__":
 
-    DataBaseHistory(session_id="1").delete_session()
+    print(DataBaseHistory(session_id="1").get_messages_by_session())
     # print(DataBaseHistory.get_session())
     # db = DataBaseHistory(session_id="2")
     # db.add_session()
