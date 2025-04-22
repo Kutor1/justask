@@ -34,15 +34,17 @@ def oask(prompt: str):
 def ask():
     """ask with history"""
 
-    # before ask, show history
+    # before ask, show the session_id history
     history_manager = History_Manager()
     history_manager.show_session()
 
+    # to catch the session_id before ask
     session_id = click.prompt("Please choose or create a new Session ID", prompt_suffix=": ")
 
     # add session_id into dbase
     history_manager.add_session_id(session_id=session_id)
     
+    # show history messages for the specific session_id
     history_manager.show_history_messages(session_id=session_id)
 
     ask_with_history = Ask_Model()

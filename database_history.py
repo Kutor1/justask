@@ -41,7 +41,10 @@ class DataBaseHistory(BaseChatMessageHistory):
             conn.commit()
 
     def add_session(self):
-
+        '''
+        add session_id into the database
+        if it exists, then jump
+        '''
         with sqlite3.connect(self.db_path) as conn:
             conn.execute('''
                 INSERT OR IGNORE INTO session_history (session_id)

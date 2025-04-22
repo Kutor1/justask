@@ -51,7 +51,9 @@ class History_Manager:
             print("session_id is not exist")
 
     def add_session_id(self, session_id: str):
-        '''add session_id into the database'''
+        '''
+        add session_id into the database
+        '''
         
         dbase = DataBaseHistory(session_id=session_id)
         dbase.add_session()
